@@ -6,7 +6,17 @@
 import psycopg2
 import sys
 
+#thoughout the code cur = conn.cursor() has been used to 
+#prepare a cursor object using the cursor method.
+# try/except  has also been used to handle exceptions
+# if an exception occurs  the relevant database changes
+# are reverted with conn.rollback() else the SQL statement
+#is excecuted and committed to the db. Whether an exception
+# occurs or not the databse connection closes after every
+# function has returned a value or has completed executing.
 
+
+#open database connection
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
@@ -105,10 +115,11 @@ def reportMatch(winner, loser):
 
     try:
 
-        
+        #if the relevant player id wins update and  increment the wins column else if the relevant player_id loses 
+        # update and increment the loses column 
         cur.execute("UPDATE PLAYER SET WINS = WINS + 1,NUM_OF_MATCHES = NUM_OF_MATCHES + 1  WHERE PLAYER_ID = '%s'" % (winner))
         cur.execute("UPDATE PLAYER SET LOSSES = LOSSES + 1,NUM_OF_MATCHES = NUM_OF_MATCHES + 1  WHERE PLAYER_ID = '%s'" % (loser))
-        
+        # after every match a new match record is inserted into the MATCH table
         cur.execute("INSERT INTO MATCH (MATCH_ID,WINNER_ID,LOSER_ID, MATCH_DATE) \
             VALUES(DEFAULT,%s,%s,CURRENT_DATE)",(winner,loser,));
         conn.commit()
@@ -143,16 +154,24 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    #playerStandings returns a list of player ids based on their rankings
     result = playerStandings()
+    #creating a new array
     pairings = []
     i = 0
+    #iterate through the list of playerStandings
     while i < len(result):
+        # using the index to find the value of i = 0  thus [0][0]
+        #which returns the  first player in the list "playerID" value
         player1Id = result[i][0]
         player1Name = result[i][1]
 
         player2Id = result[i+1][0]
         player2Name = result[i+1][1]
+
+        #add the following results and store in an array
         pairings.append((player1Id,player1Name,player2Id,player2Name))
+        #i = i+2
         i += 2
     print pairings
     return pairings
